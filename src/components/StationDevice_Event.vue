@@ -5,7 +5,7 @@
       <el-tab-pane label="厂站设置">
         <el-button @click="ChooseNode">选择节点</el-button>
         <!-- 弹出对话框 -->
-        <el-dialog v-model="showDialog" width="100%" height="100%" title="选择节点" @close="handleClose">
+        <el-dialog v-model="showQueryDialog" width="100%" height="100%" title="选择节点" @close="handleClose">
           <!-- 树形结构 -->
           <div class="sync-dialog__div">
             <el-input
@@ -110,10 +110,10 @@ import {
   DisplayStation,
   filterText, rawDeviceInf,
   rawStationInf,
-  showDialog,
+  showQueryDialog,
   treeRef
 } from "@/utils/InfJson.js";
-import {put} from "axios";
+
 
 let defaultProps = ref({
   children: 'children',

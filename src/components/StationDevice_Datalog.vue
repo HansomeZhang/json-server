@@ -4,61 +4,67 @@
     <el-tab-pane label="厂站设置">tips
       <div >
         <el-tag type="primary">选中的厂站</el-tag>
-        <el-input type="text"  v-model="DisplayStation" />
+        <el-input type="text"  v-model="DisplayStation"/>
       </div>
 
       <div >
         <el-tag type="primary">选中的设备</el-tag>
         <el-input type="text"  v-model=DisplayDevice />
       </div>
-      <el-button @click="ChooseNode">选择查询节点</el-button>
-      <!-- 弹出对话框 -->
-      <el-dialog v-model="showDialog" width="100%" height="100%" title="选择查询节点" @close="handleClose">
-        <!-- 树形结构 -->
-        <div class="sync-dialog__div">
-          <el-input
-              v-model="filterText"
-              style="width: 240px"
-              placeholder="Filter keyword"/>
-          <el-tree
-              ref="treeRef"
-              class="filter-tree"
-              :data="treeData"
-              :props="defaultProps"
-              show-checkbox
-              accordion
-              @check="handleCheckChange"
-              :filter-node-method="filterNode"/>
-        </div>
-        <span slot="footer" class="dialog-footer">
-        <el-button @click="handleCancel">取消</el-button>
-        <el-button type="primary" @click="handleConfirm">确定</el-button>
+      <div>
+        <el-button @click="ChooseQueryNode">选择查询节点</el-button>
+        <!-- 弹出对话框 -->
+        <el-dialog v-model="showQueryDialog" width="100%" height="100%" title="选择查询节点" @close="handleQueryClose">
+          <!-- 树形结构 -->
+          <div class="sync-dialog__div">
+            <el-input
+                v-model="filterText"
+                style="width: 240px"
+                placeholder="Filter keyword"/>
+            <el-tree
+                ref="treeRef"
+                class="filter-tree"
+                :data="treeData"
+                node-key
+                :props="defaultProps"
+                show-checkbox
+                accordion
+                @check="handleCheckChange"
+                :filter-node-method="filterNode"/>
+          </div>
+          <span slot="footer" class="dialog-footer">
+        <el-button @click="handleQueryCancel">取消</el-button>
+        <el-button type="primary" @click="handleQueryConfirm">查询</el-button>
         </span>
-      </el-dialog>
-      <el-button @click="ChooseNode">选择修改节点</el-button>
-      <!-- 弹出对话框 -->
-      <el-dialog v-model="showDialog" width="100%" height="100%" title="选择修改节点" @close="handleClose">
-        <!-- 树形结构 -->
-        <div class="sync-dialog__div">
-          <el-input
-              v-model="filterText"
-              style="width: 240px"
-              placeholder="Filter keyword"/>
-          <el-tree
-              ref="treeRef"
-              class="filter-tree"
-              :data="treeData"
-              :props="defaultProps"
-              show-checkbox
-              accordion
-              @check="handleCheckChange"
-              :filter-node-method="filterNode"/>
-        </div>
-        <span slot="footer" class="dialog-footer">
-        <el-button @click="handleCancel">取消</el-button>
-        <el-button type="primary" @click="handleConfirm">确定</el-button>
+        </el-dialog>
+      </div>
+      <div>
+        <el-button @click="ChooseModifyNode">选择修改节点</el-button>
+        <!-- 弹出对话框 -->
+        <el-dialog v-model="showModifyDialog" width="100%" height="100%" title="选择修改节点" @close="handleModifyClose">
+          <!-- 树形结构 -->
+          <div class="sync-dialog__div">
+            <el-input
+                v-model="filterText"
+                style="width: 240px"
+                placeholder="Filter keyword"/>
+            <el-tree
+                ref="treeRef"
+                class="filter-tree"
+                :data="treeData"
+                :props="defaultProps"
+                show-checkbox
+                accordion
+                @check="handleCheckChange"
+                :filter-node-method="filterNode"/>
+          </div>
+          <span slot="footer" class="dialog-footer">
+        <el-button @click="handleQueryCancel">取消</el-button>
+        <el-button type="primary" @click="handleQueryConfirm">修改</el-button>
         </span>
-      </el-dialog>
+        </el-dialog>
+      </div>
+
       <el-button type="success" @click="modifyStationInf">初始化</el-button>
       <el-button type="primary" @click="getStationInf">查询</el-button>
       <el-button type="success" @click="modifyStationInf">修改</el-button>
@@ -112,12 +118,6 @@
         <el-tag type="primary" placeholder="2022-07-22">开始时间</el-tag>
         <el-input type="text"  v-model="rawStationInf.data[0].sections.GenerateDataLog.BegTime" />
 
-<!--        <span class="demonstration">With default time</span>-->
-<!--        <el-date-picker-->
-<!--            v-model="DateSelector"-->
-<!--            type="datetime"-->
-<!--            placeholder="Select date and time"-->
-<!--        />-->
       </div>
       <div style="display: flex;">
         <el-tag type="primary">结束时间</el-tag>
@@ -154,7 +154,7 @@
           <el-button type="success" @click="modifyDeviceInf">修改</el-button>
           <div style="display: flex;">
             <el-tag type="primary">时间间隔</el-tag>
-            <el-input type="text" id="TimeInterval" v-model="rawDeviceInf.data[0].inf.DataLog.TimeInterval" />
+            <el-input type="text" id="TimeInterval" v-model="rawDeviceInf.data[0].deviceId" />
             <el-input v-model="rawDeviceInf.data[0].deviceId"></el-input>
           </div>
           <el-tag type="primary">生成方式</el-tag>
@@ -191,6 +191,11 @@
           <el-tag type="danger">Tag 5</el-tag>
         </el-tab-pane>
         <el-tab-pane label="秒级">
+          <div style="display: flex;">
+            <el-tag type="primary">能耗增长区间</el-tag>
+            <el-input type="text" v-model="rawDeviceInf.data[0].inf.DataLog.MinRandom" />~
+            <el-input type="text" v-model="rawDeviceInf.data[0].inf.DataLog.MaxRandom" />
+          </div>
         </el-tab-pane>
         <el-tab-pane label="高速">
         </el-tab-pane>
@@ -201,99 +206,101 @@
 
 <script setup>
 import {ElTree} from "element-plus";
+import { ElMessage } from 'element-plus';
 import {get, post, put} from "@/utils/http.js";
 import { ref, watch} from "vue";
 
 import {
   BooleanOptions,
   checkedKeys, ConfigServerIP,
-  DateSelector, DeviceJson, DisplayDevice, DisplayStation,
+  DateSelector, DeviceJson, DeviceList, DisplayDevice, DisplayStation,
   EnergyOptions, filterText,
   GenerateOptions,
   rawDeviceInf,
-  rawStationInf, showDialog, treeRef
+  rawStationInf, showModifyDialog, showQueryDialog, treeRef
 } from "@/utils/InfJson.js";
+import {treeData} from "@/utils/TreeHandler.js";
 
 let defaultProps = ref({
   children: 'children',
-  label: 'nodeName'
+  label: 'nodeName',
+  disabled: 'disabled'
 })
 const tabPosition = ref('top')
-let DeviceList =ref([])
-let treeData = ref()
+
+
 let NodeTree = ref([])
-function handleClose() {
+function handleQueryClose() {
   // 关闭对话框时清空选中的节点
   // checkedKeys.value = [];
   console.log("close")
 }
-async function ChooseNode(){
-  showDialog.value = true
-  // console.log(ConfigServerStore.NodeTree)
-  await get(`/pre/getNodeTree?ConfigServerIP=${ConfigServerIP.value}`)
-      .then(response => {
-        // 将 JSON 数据转换为树节点格式
-        // infoList.value = response.data.data
-        treeData.value = generateTreeNodes(response.data.data);
-        console.log(treeData.value)
-      })
-      .catch(error => {
-        console.error('Error fetching data:', error);
-      });
+function handleModifyClose() {
+  // 关闭对话框时清空选中的节点
+  // checkedKeys.value = [];
+  console.log("close")
 }
-function handleCancel() {
-  checkedKeys.value = [];
+async function ChooseQueryNode(){
+  showQueryDialog.value = true
+  console.log(treeData.value)
+}
+async function ChooseModifyNode(){
+  showModifyDialog.value = true
+}
+function handleQueryCancel() {
+  // checkedKeys.value = [];
   DeviceList.value = []
   // 取消选择时关闭对话框
-  showDialog.value = false;
+  showQueryDialog.value = false;
 }
-
-function handleConfirm(data) {
-  showDialog.value = false;
+function handleModifyCancel() {
+  // checkedKeys.value = [];
+  DeviceList.value = []
+  // 取消选择时关闭对话框
+  showModifyDialog.value = false;
+}
+function handleQueryConfirm(data) {
+  showQueryDialog.value = false;
+  console.log('选中的节点数据：', DeviceList);
+}
+function handleModifyConfirm(data) {
+  showModifyDialog.value = false;
   console.log('选中的节点数据：', DeviceList);
 }
 // 处理节点选中状态变化事件
 function handleCheckChange(checkedNodes) {
-  showDialog.value = true;
+  showQueryDialog.value = true;
+  // 设备
   if (checkedNodes.nodeType == 269619472) {
     console.log('This is a DeviceNode：', checkedNodes.nodeId);
     DisplayDevice.value = checkedNodes.nodeId;
-    DeviceList.push(checkedNodes.nodeId)
+    DeviceList.value.push(checkedNodes.nodeId)
     console.log(DeviceList)
   } else {
+    // 厂站
     if (checkedNodes.nodeType == 269615104) {
       DisplayStation.value =  checkedNodes.nodeId
       for (let i = 0; i < checkedNodes.children.length; i++) {
         console.log("This is a DeviceNode", checkedNodes.children[i].children.length);
         for (let j = 0; j < checkedNodes.children[i].children.length; j++) {
           console.log("DeviceName", checkedNodes.children[i].children[j].nodeId)
-          DeviceList.push(checkedNodes.children[i].children[j].nodeId)
+          DeviceList.value.push(checkedNodes.children[i].children[j].nodeId)
         }
       }
     }
+    // 通道
     if (checkedNodes.nodeType == 269619456) {
       for (let j = 0; j < checkedNodes.children.length; j++) {
-        DeviceList.push(checkedNodes.children[j].nodeId)
+        DeviceList.value.push(checkedNodes.children[j].nodeId)
         console.log('This is a DeviceNode：', checkedNodes.children[j].nodeId);
       }
     }
   }
   console.log("StationId:",DisplayStation.value)
-  let uniqueArr = Array.from(new Set(DeviceList));
+  let uniqueArr = Array.from(new Set(DeviceList.value));
   console.log("独一无二",uniqueArr); // [1, 2, 3, 4, 5]
 }
-function generateTreeNodes(data) {
-  DeviceList = []
-  if (!data) return [];
-  NodeTree= data.map(node => ({
 
-    nodeId: node.nodeId,
-    nodeName: node.nodeName,
-    nodeType: node.nodeType,
-    children: generateTreeNodes(node.children) // 递归生成子节点
-  }))
-  return NodeTree
-}
 
 watch(filterText, (val) => {
     treeRef.value.filter(val);
@@ -307,6 +314,12 @@ let filterNode = (value, data) => {
 
 async function getStationInf() {
   let res = await get(`/pre/getStationInf?ConfigServerIP=${ConfigServerIP.value}&&StationId=${DisplayStation.value}`)
+  if(!rawStationInf.value.data[0].inf.DataLog.Enable||!rawStationInf.value.data[0].inf.DataLog.TimeInterval)
+  {  ElMessage({
+    message: '这是一条厂站消息',
+    type: 'error',
+  })
+    return}
   rawStationInf.value = res.data
   console.log(rawStationInf.value.data[0].sections.GenerateDataLog.BatchGenerate);
   console.log(DeviceList.value)
@@ -331,7 +344,20 @@ function convertToStr(boolValue) {
 async function getDeviceInf() {
   console.log(DisplayDevice)
   let res = await post(`/pre/getDeviceInf?ConfigServerIP=${ConfigServerIP.value}`, [DisplayDevice.value])
+  console.log("???????")
+
+  const keysToCheck = [res.data.data[0].inf.DataLog, 'key3'];
+  for (let i = 0; i < keysToCheck.length; i++) {
+    if(!keysToCheck[i])
+    {  ElMessage({
+      message: '配置不存在',
+      type: 'error',
+    })
+      return
+    }
+  }
   rawDeviceInf.value = res.data
+  console.log(rawDeviceInf.value,"11111");
   console.log(rawDeviceInf.value.data[0].inf.DataLog.TimeInterval);
   console.log(DeviceList.value)
   return rawDeviceInf
@@ -350,11 +376,7 @@ async function modifyDeviceInf() {
     DeviceJson.value[0].deviceId = DeviceList[i]
     await put(`/pre/modifyDeviceInf?ConfigServerIP=${ConfigServerIP.value}`, DeviceJson.value)
   }
-
 }
-
-
-
 
 </script>
 <style>

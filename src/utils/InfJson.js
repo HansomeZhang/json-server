@@ -1,5 +1,7 @@
 import {ref} from "vue";
-export let showDialog = ref(false)
+export let showQueryDialog = ref(false)
+export let showModifyDialog = ref(false)
+export let DeviceList =ref([])
 export let MeasureJson= ref({
     "code": 0,
     "success": true,
@@ -11,26 +13,6 @@ export let MeasureJson= ref({
             "measName": "预留1",
             "measType": 0,
             "measDef": 1,
-            "measAmp": 1,
-            "measDiv": 1,
-            "measMin": -999999999.0,
-            "measMax": 999999999.0
-        },
-        {
-            "measId": 32,
-            "measName": "预留2",
-            "measType": 0,
-            "measDef": 2,
-            "measAmp": 1,
-            "measDiv": 1,
-            "measMin": -999999999.0,
-            "measMax": 999999999.0
-        },
-        {
-            "measId": 33,
-            "measName": "预留3",
-            "measType": 0,
-            "measDef": 3,
             "measAmp": 1,
             "measDiv": 1,
             "measMin": -999999999.0,
@@ -54,7 +36,12 @@ export let rawStationInf = ref({
                     "FreezeAiDuration": "0",
                     "period": "300",
                     "ReadTransientRecord": "false",
-                    "ReadInstantRecord": "false"
+                    "ReadInstantRecord": "false",
+
+                },
+                "DataLog": {
+                    "TimeInterval": "",
+                    "Enable": ""
                 },
                 "GenerateDataLog": {
                     "BatchGenerate": "",
@@ -269,12 +256,12 @@ export let rawDeviceInf = ref({
                 "DataLog": {
                     "ChangeType": "0",
                     "CustomValue": "0",
-                    "Enable": "false",
+                    "Enable": "",
                     "GenerateType": "0",
                     "MaxRandom": "0",
                     "MinRandom": "0",
                     "ResetEnergyValue": "false",
-                    "TimeInterval": "0",
+                    "TimeInterval": "",
                     "TimeOffset": "0",
                     "difference": "0",
                     "disadvantageNum": "0",

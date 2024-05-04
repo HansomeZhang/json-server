@@ -5,7 +5,6 @@ import ConfigServerIP from "@/components/IPConfig.vue";
 import { Calendar } from '@element-plus/icons-vue'
 import StationDevice_RealtimeData from "@/components/StationDevice_RealtimeData.vue";
 import StationDevice_Event from "@/components/StationDevice_Event.vue";
-import Test from "@/components/test.vue";
 </script>
 
 <template>
