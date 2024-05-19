@@ -15,11 +15,11 @@ export default defineConfig({
 
   },
   server:{
-    host:"10.12.135.74",
+    host:"192.168.2.13",
     proxy : {
       "/pre" : {
         //此处的写法，目的是为了将/api替换成http: //localhost: 3000
-        target: "http://10.12.135.74:5001",
+        target: "http://192.168.2.13:5001",
         //是否跨域
         changeOrigin: true,
         //路径重写下面示例为将/api替换成空pathRewrite: {

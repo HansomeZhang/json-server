@@ -7,16 +7,14 @@ export let NodeTree =ref()
 function generateTreeNodes(data) {
     // DeviceList = []
     if (!data) return [];
-    NodeTree= data.map(node => ({
+    NodeTree = data.map(node => ({
         nodeId: node.nodeId,
         nodeName: node.nodeName,
         nodeType: node.nodeType,
-    //     if(node.nodeType == 2657){
-    //     disabled=true
-    // }
-        disabled: false,
         children: generateTreeNodes(node.children) // 递归生成子节点
-    }))
+    }
+    )
+    )
     return NodeTree
 }
 

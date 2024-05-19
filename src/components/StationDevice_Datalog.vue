@@ -4,12 +4,11 @@
     <el-tab-pane label="厂站设置">tips
       <div >
         <el-tag type="primary">选中的厂站</el-tag>
-        <el-input type="text"  v-model="DisplayStation"/>
+        <el-input type="text" style="width: 150px;" v-model="DisplayStation"/>
       </div>
-
       <div >
         <el-tag type="primary">选中的设备</el-tag>
-        <el-input type="text"  v-model=DisplayDevice />
+        <el-input type="text" style="width: 150px;" v-model=DisplayDevice />
       </div>
       <div>
         <el-button @click="ChooseQueryNode">选择查询节点</el-button>
@@ -113,23 +112,23 @@
           />
         </el-select>
       </div>
-      <el-input type="text" v-model="rawStationInf.data[0].sections.GenerateDataLog.BatchGenerate"></el-input>
+      <el-input type="text" style="width: 150px;" v-model="rawStationInf.data[0].sections.GenerateDataLog.BatchGenerate"></el-input>
       <div style="display: flex;">
         <el-tag type="primary" placeholder="2022-07-22">开始时间</el-tag>
-        <el-input type="text"  v-model="rawStationInf.data[0].sections.GenerateDataLog.BegTime" />
+        <el-input type="text" style="width: 150px;" v-model="rawStationInf.data[0].sections.GenerateDataLog.BegTime" />
 
       </div>
       <div style="display: flex;">
         <el-tag type="primary">结束时间</el-tag>
-        <el-input type="text"  v-model="rawStationInf.data[0].sections.GenerateDataLog.EndTime" />
+        <el-input type="text" style="width: 150px;" v-model="rawStationInf.data[0].sections.GenerateDataLog.EndTime" />
       </div>
       <div style="display: flex;">
         <el-tag type="primary">时间间隔(s)</el-tag>
-        <el-input type="text"  v-model="rawStationInf.data[0].sections.GenerateDataLog.TimeInterval" />
+        <el-input type="text" style="width: 150px;" v-model="rawStationInf.data[0].sections.GenerateDataLog.TimeInterval" />
       </div>
       <div style="display: flex;">
         <el-tag type="primary">能耗(随机值)增长区间</el-tag>
-        <el-input type="text"  v-model="rawStationInf.data[0].sections.CustomDataLogProperty.EnergyRandomValueRange" />
+        <el-input type="text" style="width: 150px;" v-model="rawStationInf.data[0].sections.CustomDataLogProperty.EnergyRandomValueRange" />
       </div>
       <div>
         <el-tag type="info">定时记录值类型</el-tag>

@@ -2,7 +2,7 @@
   <el-tabs :tab-position="tabPosition" style="height: 200px" class="demo-tabs">
 
     <el-tab-pane label="厂站设置">
-      <el-button @click="ChooseNode">选择查询节点</el-button>
+      <el-button @click="ChooseQueryNode">选择查询节点</el-button>
       <!-- 弹出对话框 -->
       <el-dialog v-model="showQueryDialog" width="100%" height="100%" title="选择查询节点" @close="handleClose">
         <!-- 树形结构 -->
@@ -22,13 +22,13 @@
               :filter-node-method="filterNode"/>
         </div>
         <span slot="footer" class="dialog-footer">
-        <el-button @click="handleCancel">取消</el-button>
-        <el-button type="primary" @click="handleConfirm">查询</el-button>
+        <el-button @click="handleQueryCancel">取消</el-button>
+        <el-button type="primary" @click="handleQueryConfirm">查询</el-button>
         </span>
       </el-dialog>
-      <el-button @click="ChooseNode">选择修改节点</el-button>
+      <el-button @click="ChooseModifyNode">选择修改节点</el-button>
       <!-- 弹出对话框 -->
-      <el-dialog v-model="showDialog" width="100%" height="100%" title="选择修改节点" @close="handleClose">
+      <el-dialog v-model="showModifyDialog" width="100%" height="100%" title="选择修改节点" @close="handleClose">
         <!-- 树形结构 -->
         <div class="sync-dialog__div">
           <el-input
@@ -46,8 +46,8 @@
               :filter-node-method="filterNode"/>
         </div>
         <span slot="footer" class="dialog-footer">
-        <el-button @click="handleCancel">取消</el-button>
-        <el-button type="primary" @click="handleConfirm">修改1</el-button>
+        <el-button @click="handleModifyCancel">取消</el-button>
+        <el-button type="primary" @click="handleModifyConfirm">修改</el-button>
         </span>
       </el-dialog>
       <div style="display: flex;">
@@ -111,15 +111,16 @@
 import {computed, onMounted, ref, watch} from 'vue'
 import {
   checkedKeys,
-  ConfigServerIP,
+  ConfigServerIP, DeviceList,
   DisplayDevice,
   DisplayStation,
   EnergyOptions, filterText,
   MeasureJson, rawDeviceInf,
-  rawStationInf, RealTimeOptions, showQueryDialog, treeRef
+  rawStationInf, RealTimeOptions, showModifyDialog, showQueryDialog, treeRef
 } from "@/utils/InfJson.js";
 import {get, put} from "@/utils/http.js";
 import {ElTree} from "element-plus";
+import {treeData} from "@/utils/TreeHandler.js";
 const tabPosition = ref('top')
 // 表格数据
 const tableData = ref([{ selectedOption: '', inputValue: '' }]);
@@ -140,46 +141,53 @@ let  DeviceJson = ref([{
   "deviceId": "",
   "customInfParamList":[]
 }])
-let DeviceList =ref([])
-let treeData = ref()
+
+
 let NodeTree = ref([])
 function handleClose() {
   // 关闭对话框时清空选中的节点
   // checkedKeys.value = [];
   console.log("close")
 }
-async function ChooseNode(){
-  showDialog.value = true
+async function ChooseQueryNode(){
+  showQueryDialog.value = true
   // console.log(ConfigServerStore.NodeTree)
-  await get(`/pre/getNodeTree?ConfigServerIP=${ConfigServerIP.value}`)
-      .then(response => {
-        // 将 JSON 数据转换为树节点格式
-        // infoList.value = response.data.data
-        treeData.value = generateTreeNodes(response.data.data);
-        console.log(treeData.value)
-      })
-      .catch(error => {
-        console.error('Error fetching data:', error);
-      });
+
 }
-function handleCancel() {
+async function ChooseModifyNode(){
+  showModifyDialog.value = true
+  // console.log(ConfigServerStore.NodeTree)
+
+}
+function handleQueryCancel() {
   checkedKeys.value = [];
   DeviceList.value = []
   // 取消选择时关闭对话框
-  showDialog.value = false;
+  showQueryDialog.value = false;
 }
 
-function handleConfirm(data) {
-  showDialog.value = false;
+function handleQueryConfirm(data) {
+  showQueryDialog.value = false;
+  console.log('选中的节点数据：', DeviceList);
+}
+function handleModifyCancel() {
+  checkedKeys.value = [];
+  DeviceList.value = []
+  // 取消选择时关闭对话框
+  showModifyDialog.value = false;
+}
+
+function handleModifyConfirm(data) {
+  showModifyDialog.value = false;
   console.log('选中的节点数据：', DeviceList);
 }
 // 处理节点选中状态变化事件
 function handleCheckChange(checkedNodes) {
-  showDialog.value = true;
+
   if (checkedNodes.nodeType == 269619472) {
     console.log('This is a DeviceNode：', checkedNodes.nodeId);
     DisplayDevice.value = checkedNodes.nodeId;
-    DeviceList.push(checkedNodes.nodeId)
+    DeviceList.value.push(checkedNodes.nodeId)
     console.log(DeviceList)
   } else {
     if (checkedNodes.nodeType == 269615104) {
@@ -188,19 +196,20 @@ function handleCheckChange(checkedNodes) {
         console.log("This is a DeviceNode", checkedNodes.children[i].children.length);
         for (let j = 0; j < checkedNodes.children[i].children.length; j++) {
           console.log("DeviceName", checkedNodes.children[i].children[j].nodeId)
-          DeviceList.push(checkedNodes.children[i].children[j].nodeId)
+          DeviceList.value.push(checkedNodes.children[i].children[j].nodeId)
         }
       }
     }
     if (checkedNodes.nodeType == 269619456) {
       for (let j = 0; j < checkedNodes.children.length; j++) {
-        DeviceList.push(checkedNodes.children[j].nodeId)
+        DeviceList.value.push(checkedNodes.children[j].nodeId)
         console.log('This is a DeviceNode：', checkedNodes.children[j].nodeId);
       }
+      return false
     }
   }
   console.log("StationId:",DisplayStation.value)
-  let uniqueArr = Array.from(new Set(DeviceList));
+  let uniqueArr = Array.from(new Set(DeviceList.value));
   console.log("独一无二",uniqueArr); // [1, 2, 3, 4, 5]
 }
 function generateTreeNodes(data) {
@@ -241,17 +250,17 @@ async function TypeCount(){
   // 遍历数组并生成JSON对象
   for (let i = 1;i<=result.length;i++) {
     jsonArray.push({
-      section: `[A${i}]`,
+      section: `A${i}`,
       key: `Ref1`,
       value: Ref1.value[i]
     });
     jsonArray.push({
-      section: `[A${i}]`,
+      section: `A${i}`,
       key: `Ref2`,
       value: Ref2.value[i]
     });
     jsonArray.push({
-      section: `[A${i}]`,
+      section: `A${i}`,
       key: `Type`,
       value: Link.value[i]
     });
@@ -260,8 +269,8 @@ async function TypeCount(){
   console.log("DeviceList:",DeviceList)
   // 输出或使用jsonArray
   console.log("请求json ： ",DeviceJson.value);
-  for (let i=0;i<DeviceList.length;i++ ) {
-    DeviceJson.value[0].deviceId  = DeviceList[i]
+  for (let i=0;i<DeviceList.value.length;i++ ) {
+    DeviceJson.value[0].deviceId  = DeviceList.value[i]
     console.log("i : ",DeviceList[i]);
     const res = await put(`/pre/modifyDeviceInf?ConfigServerIP=${ConfigServerIP.value}`, DeviceJson.value)
     console.log(res)
