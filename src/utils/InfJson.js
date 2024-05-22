@@ -1,7 +1,5 @@
 import {ref} from "vue";
-export let showQueryDialog = ref(false)
-export let showModifyDialog = ref(false)
-export let DeviceList =ref([])
+export let showDialog = ref(false)
 export let MeasureJson= ref({
     "code": 0,
     "success": true,
@@ -13,6 +11,26 @@ export let MeasureJson= ref({
             "measName": "预留1",
             "measType": 0,
             "measDef": 1,
+            "measAmp": 1,
+            "measDiv": 1,
+            "measMin": -999999999.0,
+            "measMax": 999999999.0
+        },
+        {
+            "measId": 32,
+            "measName": "预留2",
+            "measType": 0,
+            "measDef": 2,
+            "measAmp": 1,
+            "measDiv": 1,
+            "measMin": -999999999.0,
+            "measMax": 999999999.0
+        },
+        {
+            "measId": 33,
+            "measName": "预留3",
+            "measType": 0,
+            "measDef": 3,
             "measAmp": 1,
             "measDiv": 1,
             "measMin": -999999999.0,
@@ -36,48 +54,19 @@ export let rawStationInf = ref({
                     "FreezeAiDuration": "0",
                     "period": "300",
                     "ReadTransientRecord": "false",
-                    "ReadInstantRecord": "false",
-
-                },
-                "DataLog": {
-                    "TimeInterval": "",
-                    "Enable": ""
+                    "ReadInstantRecord": "false"
                 },
                 "GenerateDataLog": {
-                    "BatchGenerate": "",
-                    "BatchGenerateSecond": "",
-                    "BatchGenerateHighSpeed": "",
-                    "GenerateType": "",
-                    "TimeInterval": "",
-                    "BegTime": "",
-                    "EndTime": "",
-                    "ChangeType": "",
-                    "ResetPoi": "",
-                    "LastDataLogTime": ""
-                },
-                "GenerateHighSpeedDataLog": {
-                    "BatchGenerate": "",
-                    "BatchGenerateSecond": "",
-                    "BatchGenerateHighSpeed": "",
-                    "GenerateType": "",
-                    "TimeInterval": "",
-                    "BegTime": "",
-                    "EndTime": "",
-                    "ChangeType": "",
-                    "ResetPoi": "",
-                    "LastDataLogTime": ""
-                },
-                "GenerateSecondDataLog": {
-                    "BatchGenerate": "",
-                    "BatchGenerateSecond": "",
-                    "BatchGenerateHighSpeed": "",
-                    "GenerateType": "",
-                    "TimeInterval": "",
-                    "BegTime": "",
-                    "EndTime": "",
-                    "ChangeType": "",
-                    "ResetPoi": "",
-                    "LastDataLogTime": ""
+                    "BatchGenerate": "false",
+                    "BatchGenerateSecond": "false",
+                    "BatchGenerateHighSpeed": "false",
+                    "GenerateType": "0",
+                    "TimeInterval": "60",
+                    "BegTime": "2018-08-21 00:00:00",
+                    "EndTime": "2018-08-22 00:00:00",
+                    "ChangeType": "0",
+                    "ResetPoi": "false",
+                    "LastDataLogTime": "2018-08-22 00:00:00"
                 },
                 "CustomDataLogProperty": {
                     "DataLogGenerateIDType": "",
@@ -101,7 +90,8 @@ export let rawStationInf = ref({
                     "EventGenerateIDType": "false",
                     "EventStaIDs": "",
                     "EventChnIDs": "",
-                    "EventDevIDs": ""
+                    "EventDevIDs": "",
+                    "CustomBatteryEvent": "false"
                 },
                 "TIMEZONE": {
                     "Timezone": "China Standard Time"
@@ -166,6 +156,45 @@ export let GenerateOptions = ref([
     },
     {
         value: '13',
+        label: '时间',
+    }
+])
+
+export let ChangeType = ref([
+    {
+        value: '0',
+        label: '按设备映射方案',
+    },
+    {
+        value: '1',
+        label: '随机值',
+    },
+    {
+        value: '2',
+        label: 'NAN',
+    },
+    {
+        value: '3',
+        label: 'NA',
+    },
+    {
+        value: '4',
+        label: '按照自定义值',
+    },
+    {
+        value: '5',
+        label: '造异常时间',
+    },
+    {
+        value: '6',
+        label: '指定范围内变化',
+    },
+    {
+        value: '7',
+        label: '正弦曲线',
+    },
+    {
+        value: '8',
         label: '时间',
     }
 ])
@@ -256,12 +285,12 @@ export let rawDeviceInf = ref({
                 "DataLog": {
                     "ChangeType": "0",
                     "CustomValue": "0",
-                    "Enable": "",
+                    "Enable": "false",
                     "GenerateType": "0",
                     "MaxRandom": "0",
                     "MinRandom": "0",
                     "ResetEnergyValue": "false",
-                    "TimeInterval": "",
+                    "TimeInterval": "0",
                     "TimeOffset": "0",
                     "difference": "0",
                     "disadvantageNum": "0",
@@ -293,14 +322,31 @@ export let rawDeviceInf = ref({
                     "string": "",
                 },
 
-                "SecondDataLogCfg": {
-                    "ParaHandle": "0",
+                "SecondDataLog": {
+                    "TimeOffset": "0",
                     "TimeInterval": "3"
                 },
                 "VirtualDataLogCfg": {
                     "ParaHandle": "0-1",
-                    "TimeInterval": "",
+                    "TimeInterval": "5",
                     "TimeOffset": "0"
+                },
+                "HighDataLog": {
+                    "TimeOffset": "0",
+                    "TimeInterval": "3"
+                },
+                "RealData":{
+                    "TimeInterval": "1",
+                    "Writeintegrity": "false"
+                },
+                "CustomEventLog":{
+                    "DevEventEnable": "false",
+                    "CustomTimeInterval": "60",
+                    "Types": "1",
+                    "Levels": "1",
+                    "EventBytes": "",
+                    "Digitalnumbers": "",
+                    "EachTypeAndLevelNum": "1",
                 }
             }
         }
@@ -354,6 +400,46 @@ export let DeviceJson = ref([{
             },
             {
                 "key": "MaxRandom",
+                "section": "DataLog",
+                "value": ""
+            },
+            {
+                "key": "CustomValue",
+                "section": "DataLog",
+                "value": ""
+            },
+            {
+                "key": "Enable",
+                "section": "DataLog",
+                "value": ""
+            },
+            {
+                "key": "difference",
+                "section": "DataLog",
+                "value": ""
+            },
+            {
+                "key": "disadvantageNum",
+                "section": "DataLog",
+                "value": ""
+            },
+            {
+                "key": "interval",
+                "section": "DataLog",
+                "value": ""
+            },
+            {
+                "key": "mutationNum",
+                "section": "DataLog",
+                "value": ""
+            },
+            {
+                "key": "startValue",
+                "section": "DataLog",
+                "value": ""
+            },
+            {
+                "key": "type",
                 "section": "DataLog",
                 "value": ""
             }

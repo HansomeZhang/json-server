@@ -4,7 +4,7 @@
     <el-tab-pane label="厂站设置">
       <el-button @click="ChooseNode">选择查询节点</el-button>
       <!-- 弹出对话框 -->
-      <el-dialog v-model="showQueryDialog" width="100%" height="100%" title="选择查询节点" @close="handleClose">
+      <el-dialog v-model="showDialog" width="100%" height="100%" title="选择查询节点" @close="handleClose">
         <!-- 树形结构 -->
         <div class="sync-dialog__div">
           <el-input
@@ -23,33 +23,12 @@
         </div>
         <span slot="footer" class="dialog-footer">
         <el-button @click="handleCancel">取消</el-button>
-        <el-button type="primary" @click="handleConfirm">查询</el-button>
+        <el-button type="primary" @click="handleConfirm">确定</el-button>
         </span>
       </el-dialog>
-      <el-button @click="ChooseNode">选择修改节点</el-button>
-      <!-- 弹出对话框 -->
-      <el-dialog v-model="showDialog" width="100%" height="100%" title="选择修改节点" @close="handleClose">
-        <!-- 树形结构 -->
-        <div class="sync-dialog__div">
-          <el-input
-              v-model="filterText"
-              style="width: 240px"
-              placeholder="Filter keyword"/>
-          <el-tree
-              ref="treeRef"
-              class="filter-tree"
-              :data="treeData"
-              :props="defaultProps"
-              show-checkbox
-              accordion
-              @check="handleCheckChange"
-              :filter-node-method="filterNode"/>
-        </div>
-        <span slot="footer" class="dialog-footer">
-        <el-button @click="handleCancel">取消</el-button>
-        <el-button type="primary" @click="handleConfirm">修改1</el-button>
-        </span>
-      </el-dialog>
+      <el-button type="success" @click="modifyStationInf">初始化</el-button>
+      <el-button type="primary" @click="getStationInf">查询</el-button>
+      <el-button type="success" @click="modifyStationInf">修改</el-button>
       <div style="display: flex;">
         <el-tag style="width: 220px;">休眠时间（ms）</el-tag>
         <el-input style="width: 220px;"></el-input>
@@ -62,8 +41,32 @@
         <el-tag style="width: 220px;">开关量变化周期（ms）</el-tag>
         <el-input style="width: 220px;"></el-input>
       </div>
+
     </el-tab-pane>
     <el-tab-pane label="设备设置">
+      <el-button type="primary" @click="getDeviceInf">查询</el-button>
+      <el-button type="success" @click="modifyDeviceInf">修改</el-button>
+      <div style="display: flex;">
+        <el-tag type="primary">推送周期间隔</el-tag>
+        <el-input type="text"  v-model="rawDeviceInf.data[0].inf.RealData.TimeInterval" />
+      </div>
+      <div style="display: flex;">
+        <el-tag type="primary">启用实时数据保存配置</el-tag>
+        <el-select
+            v-model="rawDeviceInf.data[0].inf.RealData.Writeintegrity"
+            placeholder="Select"
+            size="large"
+            style="width: 240px">
+          <el-option
+              v-for="item in BooleanOptions"
+              :key="item.value"
+              :label="item.label"
+              :value="item.value"
+          />
+        </el-select>
+        </div>
+    </el-tab-pane>
+    <el-tab-pane label="测点设置">
     <div>
       <el-tag type="primary" v-model="AlterLength" style="width: 220px;">测点列表</el-tag>
       <el-tag type="primary" style="width: 150px;">实时值变化类型</el-tag>
@@ -110,16 +113,17 @@
 <script setup>
 import {computed, onMounted, ref, watch} from 'vue'
 import {
+  BooleanOptions,
   checkedKeys,
   ConfigServerIP,
   DisplayDevice,
   DisplayStation,
   EnergyOptions, filterText,
   MeasureJson, rawDeviceInf,
-  rawStationInf, RealTimeOptions, showQueryDialog, treeRef
+  rawStationInf, RealTimeOptions, showDialog, treeRef
 } from "@/utils/InfJson.js";
-import {get, put} from "@/utils/http.js";
-import {ElTree} from "element-plus";
+import {get, post, put} from "@/utils/http.js";
+import {ElMessage, ElTree} from "element-plus";
 const tabPosition = ref('top')
 // 表格数据
 const tableData = ref([{ selectedOption: '', inputValue: '' }]);
@@ -136,10 +140,11 @@ let Ref1 =ref([])
 let Ref2 =ref([])
 let Link =ref([])
 let jsonArray = []
-let  DeviceJson = ref([{
+let DeviceJson = ref({
   "deviceId": "",
+
   "customInfParamList":[]
-}])
+})
 let DeviceList =ref([])
 let treeData = ref()
 let NodeTree = ref([])
@@ -207,6 +212,7 @@ function generateTreeNodes(data) {
   DeviceList = []
   if (!data) return [];
   NodeTree= data.map(node => ({
+
     nodeId: node.nodeId,
     nodeName: node.nodeName,
     nodeType: node.nodeType,
@@ -224,6 +230,7 @@ let filterNode = (value, data) => {
   return data.nodeName.includes(value);
 };
 function generateInputFields() {
+
   for (let i = 0; i < Ref1.value.length; i++) {
     Ref1.value.push({ value: "" });
   }
@@ -231,13 +238,18 @@ function generateInputFields() {
 }
 async function TypeCount(){
   AlterLength.value = MeasureJson.value.data.filter(item => item.measType===0).length
+  console.log(AlterLength.value)
+  console.log(Ref1.value)
+  console.log(index.value)
   const result = Ref1.value.map((item, index) => {
     return item ? index : null;
   }).filter(item => item !== null);
   console.log(result)
   // 获取数组长度
   const length = Ref1.value.length;
+
   // 创建一个空数组来存储最终的JSON对象
+
   // 遍历数组并生成JSON对象
   for (let i = 1;i<=result.length;i++) {
     jsonArray.push({
@@ -256,35 +268,37 @@ async function TypeCount(){
       value: Link.value[i]
     });
   }
-  DeviceJson.value[0].customInfParamList = jsonArray
-  console.log("DeviceList:",DeviceList)
+  DeviceJson.value.customInfParamList=jsonArray
+  console.log(DeviceList.value)
   // 输出或使用jsonArray
-  console.log("请求json ： ",DeviceJson.value);
-  for (let i=0;i<DeviceList.length;i++ ) {
-    DeviceJson.value[0].deviceId  = DeviceList[i]
-    console.log("i : ",DeviceList[i]);
-    const res = await put(`/pre/modifyDeviceInf?ConfigServerIP=${ConfigServerIP.value}`, DeviceJson.value)
-    console.log(res)
+  console.log(DeviceJson.value);
+  for (let i = 0;i<DeviceList.length;i++) {
+    DeviceJson.value[0].deviceId = DeviceList[i]
+    await put(`/pre/modifyDeviceInf?ConfigServerIP=${ConfigServerIP.value}`, DeviceJson.value)
   }
 }
-async function modifyDeviceInf() {
-  console.log(DeviceList)
-  DeviceJson.value[0].customInfParamList[0].value = rawDeviceInf.value.data[0].inf.DataLog.TimeInterval
-  DeviceJson.value[0].customInfParamList[1].value = rawDeviceInf.value.data[0].inf.DataLog.TimeOffset
-  DeviceJson.value[0].customInfParamList[2].value = rawDeviceInf.value.data[0].inf.DataLog.GenerateType
-  DeviceJson.value[0].customInfParamList[3].value = rawDeviceInf.value.data[0].inf.DataLog.ChangeType
-  DeviceJson.value[0].customInfParamList[4].value = rawDeviceInf.value.data[0].inf.DataLog.ResetEnergyValue
-  DeviceJson.value[0].customInfParamList[5].value = rawDeviceInf.value.data[0].inf.DataLog.MinRandom
-  DeviceJson.value[0].customInfParamList[6].value = rawDeviceInf.value.data[0].inf.DataLog.MaxRandom
 
-}
-
+/*onMounted(
+    MeasureJson.value.data.map((item,index) => {
+      return{
+        name : item.measName,
+        num : index + 1
+      }
+    })
+)*/
 function getIndex(index) {
   console.log(index)
   // 在这里处理index值，然后返回处理后的值
   return index; // 假设你想将索引加1
 }
-
+// // 选项列表
+// let option = computed(() => {
+//   return MeasureJson.value.data.map((item,index) => ({
+//     label: item.measName,
+//     value: item.measId,
+//     type : item.measType,
+//
+//   }))})
 async function QueryMeasure(){
   let res = await get(`/pre/getMeasure?ConfigServerIP=${ConfigServerIP.value}&&DeviceId=${DisplayDevice.value}`)
   MeasureJson.value = res.data
@@ -300,9 +314,75 @@ async function QueryMeasure(){
 async function ModifyMeasure(){
   DeviceJson.value[0].customInfParamList[0].value = rawDeviceInf.value.data[0].inf.DataLog.TimeInterval
   console.log(MeasureJson.value)
+
   let res = await get(`/pre/getMeasure?ConfigServerIP=${ConfigServerIP.value}&&DeviceId=${DisplayDevice.value}`)
   MeasureJson.value = res.data
 }
+
+async function getStationInf() {
+  let res = await get(`/pre/getStationInf?ConfigServerIP=${ConfigServerIP.value}&&StationId=${DisplayStation.value}`)
+  if(!rawStationInf.value.data[0].inf.DataLog.Enable||!rawStationInf.value.data[0].inf.DataLog.TimeInterval)
+  {  ElMessage({
+    message: '这是一条厂站消息',
+    type: 'error',
+  })
+    return}
+  rawStationInf.value = res.data
+  console.log(rawStationInf.value.data[0].sections.GenerateDataLog.BatchGenerate);
+  console.log(DeviceList.value)
+}
+
+async function modifyStationInf() {
+  console.log(rawStationInf);
+  let res = await post(`/pre/modifyStationInf?ConfigServerIP=${ConfigServerIP.value}&&StationId=${DisplayStation.value}`, rawStationInf.value)
+  rawDeviceInf.value = res.data
+  console.log(rawDeviceInf.value);
+
+}
+
+async function getDeviceInf() {
+  console.log(DisplayDevice)
+  let res = await post(`/pre/getDeviceInf?ConfigServerIP=${ConfigServerIP.value}`, [DisplayDevice.value])
+  console.log("???????")
+
+  const keysToCheck = [
+    res.data.data[0].inf.DataLog, 'key3',
+    res.data.data[0].inf.VirtualDataLogCfg,
+    res.data.data[0].inf.SecondDataLogDataLogCfg,
+    res.data.data[0].inf.HighDataLogDataLogCfg,
+    res.data.data[0].inf.RealData,
+    res.data.data[0].inf.CustomEventLog
+  ];
+  for (let i = 0; i < keysToCheck.length; i++) {
+    if(!keysToCheck[i])
+    {  ElMessage({
+      message: '配置不存在',
+      type: 'error',
+    })
+      return
+    }
+  }
+  rawDeviceInf.value = res.data
+  console.log(rawDeviceInf.value,"11111");
+  console.log(rawDeviceInf.value.data[0].inf.DataLog.TimeInterval);
+  console.log(DeviceList.value)
+  return rawDeviceInf
+}
+
+async function modifyDeviceInf() {
+  console.log(DeviceList)
+  // console.log(rawDeviceInf.value.data[0].inf.DataLog.TimeInterval).TimeInterval
+  DeviceJson.value[0].customInfParamList[0].value = rawDeviceInf.value.data[0].inf.DataLog.TimeInterval
+  DeviceJson.value[0].customInfParamList[1].value = rawDeviceInf.value.data[0].inf.DataLog.TimeOffset
+  DeviceJson.value[0].customInfParamList[2].value = rawDeviceInf.value.data[0].inf.DataLog.GenerateType
+  DeviceJson.value[0].customInfParamList[3].value = rawDeviceInf.value.data[0].inf.DataLog.ChangeType
+  DeviceJson.value[0].customInfParamList[4].value = rawDeviceInf.value.data[0].inf.DataLog.ResetEnergyValue
+  DeviceJson.value[0].customInfParamList[5].value = rawDeviceInf.value.data[0].inf.DataLog.MinRandom
+  DeviceJson.value[0].customInfParamList[6].value = rawDeviceInf.value.data[0].inf.DataLog.MaxRandom
+
+}
+
+
 // 添加行的方法
 function addRow() {
   tableData.value.push({ selectedOption: '', inputValue: '' })}

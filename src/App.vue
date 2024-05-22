@@ -33,7 +33,7 @@ import StationDevice_Event from "@/components/StationDevice_Event.vue";
 
 <style>
 .demo-tabs > .el-tabs__content {
-  padding: 32px;
+  padding: 12px;
   color: #6b778c;
   font-size: 32px;
   font-weight: 600;
